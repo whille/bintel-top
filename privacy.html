@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>隐私政策 — B站字幕提取器</title>
+<style>
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    max-width: 780px;
+    margin: 60px auto;
+    padding: 0 20px 60px;
+    line-height: 1.75;
+    color: #1a1a1a;
+    background: #fff;
+}
+h1 {
+    color: #ff6699;
+    border-bottom: 2px solid #ff6699;
+    padding-bottom: 8px;
+    margin-top: 0;
+}
+h2 {
+    color: #ff6699;
+    margin-top: 36px;
+    border-left: 4px solid #ff6699;
+    padding-left: 12px;
+}
+h3 { color: #333; margin-top: 24px; }
+table {
+    border-collapse: collapse;
+    margin: 16px 0;
+    width: 100%;
+    font-size: 14px;
+}
+th, td {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    text-align: left;
+    vertical-align: top;
+}
+th { background: #fafafa; font-weight: 600; }
+code {
+    background: #f4f4f4;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.9em;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+}
+pre {
+    background: #f8f8f8;
+    padding: 12px 16px;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-size: 13px;
+}
+p { margin: 10px 0; }
+ul, ol { padding-left: 24px; }
+li { margin: 4px 0; }
+strong { color: #1a1a1a; }
+footer {
+    margin-top: 60px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+    color: #888;
+    font-size: 13px;
+}
+</style>
+</head>
+<body>
+<h1 id="b">隐私政策 — B站字幕提取器</h1>
+<p>最后更新：2026-10-07 (v4.0.1: ASR 全走云端, B站 Cookie 改为自动从当前页同步)</p>
+<h2 id="_1">我们收集什么</h2>
+<p>本扩展提供两种运行模式:
+1. <strong>直连模式</strong>: 浏览器直接发往 B站 / YouTube / 你配置的 LLM 服务,<strong>不经过我们服务器</strong>。
+2. <strong>云端模式</strong> (默认): 通过我们运营的 <code>*.bintel.site</code> 云端跑 AI 笔记 / ASR 字幕。
+   - <strong>鉴权</strong>: 用户通过付费获取 PSK 注册密钥 (key ≤ 64 hex 字符),在 chrome 扩展设置里填入一次。
+   - <strong>服务端只存</strong>: PSK 的 sha256 哈希值 + quota 计数 (整数),<strong>不存邮箱、不存手机号、不存姓名</strong>。
+   - <strong>PSK 如何获得</strong>: 用户通过 bintel.site 上的微信/支付宝二维码付费,我们的管理员手动生成并通过微信发给用户。<strong>扩展本身不参与支付</strong>。
+   - <strong>不收集</strong>: 邮箱 / 手机号 / 真实姓名 / 设备指纹 / 地理位置 / 浏览历史。</p>
+<p>所有数据要么留在你的浏览器本地，要么直接由你的浏览器发往 B站 / YouTube / 你配置的 LLM 服务 / 我们的云端服务器 (bintel.site)。</p>
+<h2 id="_2">扩展会发起的网络请求</h2>
+<table>
+<thead>
+<tr>
+<th>目标</th>
+<th>触发时机</th>
+<th>数据内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>api.bilibili.com</code> / <code>*.bilivideo.com</code> / <code>*.bilibili.com</code></td>
+<td>你点击「一键提取字幕」时</td>
+<td>当前视频 BV 号、字幕轨道元数据、评论热评（需 B站登录态）</td>
+</tr>
+<tr>
+<td>YouTube 相关域名</td>
+<td>你在 YouTube 页面点击「一键提取字幕」时</td>
+<td>当前视频字幕元数据</td>
+</tr>
+<tr>
+<td><code>*.bintel.site</code>（扩展默认云端服务器，可改）</td>
+<td>你点击「生成 AI 笔记」时（用云端模式）</td>
+<td>当前视频字幕、可选热评。<strong>鉴权</strong>: Bearer PSK (用户付费获得的密钥)。quota 扣减按 bvid 计数</td>
+</tr>
+<tr>
+<td>你在 AI 设置中配置的 LLM API（见下表）</td>
+<td>你点击「生成 AI 笔记」（用直连模式）</td>
+<td>当前视频的字幕文本，可选地加上 B 站视频的热评文本</td>
+</tr>
+<tr>
+<td><code>openspeech.bytedance.com</code>（豆包 ASR）</td>
+<td>由 <code>*.bintel.site</code> 云端触发（用户点击「ASR 转写」时）</td>
+<td>云端后端用 SESSDATA 拉取 + 音频 base64（≤100MB HTTP body 上限），浏览器侧不直传</td>
+</tr>
+</tbody>
+</table>
+<h2 id="llm">目前支持的可选 LLM 服务</h2>
+<table>
+<thead>
+<tr>
+<th>服务</th>
+<th>域名</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OpenAI</td>
+<td><code>api.openai.com</code></td>
+<td>官方 OpenAI Chat Completions</td>
+</tr>
+<tr>
+<td>DeepSeek</td>
+<td><code>api.deepseek.com</code></td>
+<td>DeepSeek Chat Completions</td>
+</tr>
+<tr>
+<td>阿里通义千问（DashScope）</td>
+<td><code>dashscope.aliyuncs.com</code></td>
+<td>Qwen Chat Completions（OpenAI 兼容模式）</td>
+</tr>
+<tr>
+<td>字节豆包（火山方舟）</td>
+<td><code>ark.cn-beijing.volces.com</code></td>
+<td>豆包 Chat Completions（OpenAI 兼容模式）</td>
+</tr>
+<tr>
+<td>智谱 GLM</td>
+<td><code>open.bigmodel.cn</code></td>
+<td>GLM Chat Completions（OpenAI 兼容模式）</td>
+</tr>
+<tr>
+<td>月之暗面 Kimi</td>
+<td><code>api.moonshot.cn</code></td>
+<td>Kimi Chat Completions（OpenAI 兼容模式）</td>
+</tr>
+<tr>
+<td>MiniMax</td>
+<td><code>api.minimax.cn</code></td>
+<td>MiniMax Chat Completions（OpenAI 兼容模式）</td>
+</tr>
+<tr>
+<td>自部署 / 本地</td>
+<td><code>localhost</code> / <code>127.0.0.1</code></td>
+<td>自建 OpenAI 兼容服务</td>
+</tr>
+</tbody>
+</table>
+<p>如需支持未列出的服务，请在项目仓库开 issue 请求扩展可选权限列表。</p>
+<h2 id="_3">数据存储</h2>
+<table>
+<thead>
+<tr>
+<th>数据</th>
+<th>存储位置</th>
+<th>保留时长</th>
+<th>清除方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>你的 LLM API Key</td>
+<td>浏览器本地 <code>chrome.storage.local</code></td>
+<td>直到你修改或清除扩展数据</td>
+<td>浏览器扩展设置 → 清除数据</td>
+</tr>
+<tr>
+<td>AI 笔记风格偏好</td>
+<td>浏览器本地 <code>chrome.storage.local</code></td>
+<td>同上</td>
+<td>同上</td>
+</tr>
+<tr>
+<td>最近 20 个视频的字幕缓存</td>
+<td>浏览器本地 <code>chrome.storage.local</code></td>
+<td>直到被新字幕替换或清除扩展数据</td>
+<td>同上</td>
+</tr>
+<tr>
+<td>B站 Cookie（SESSDATA 等）</td>
+<td>浏览器本地 <code>chrome.storage.local</code></td>
+<td>直到用户清除扩展数据</td>
+<td>浏览器扩展设置 → 清除数据</td>
+</tr>
+</tbody>
+</table>
+<p><strong>所有数据不上传、不转发</strong>——开发者接触不到这些内容。</p>
+<h2 id="_4">第三方服务</h2>
+<ul>
+<li>视频元数据来自 B站 / YouTube <strong>公开 API</strong></li>
+<li>LLM 调用由你<strong>自行配置</strong>的服务承担，数据直接从你的浏览器发往该服务</li>
+<li>扩展开发者<strong>不接触、不转发、不存储</strong>这些请求的内容</li>
+<li>请查阅各第三方服务自身的隐私政策以了解他们如何处理你的请求</li>
+</ul>
+<h2 id="_5">权限用途</h2>
+<p>每个 host 的精确用途见 <a href="./HOST_USAGE.md">HOST_USAGE.md</a>。</p>
+<h2 id="_6">儿童隐私</h2>
+<p>本扩展不针对 13 岁以下儿童，也不会故意收集儿童个人信息。</p>
+<h2 id="_7">政策变更</h2>
+<p>如有重大变更，会在此页面顶部更新「最后更新」日期，并通过扩展更新日志告知。</p>
+<h2 id="_8">联系</h2>
+<ul>
+<li>项目仓库：见扩展 chrome://extensions 页面中的"网站"链接</li>
+<li>Issue 反馈：项目仓库的 Issues 区</li>
+</ul>
+<footer>
+<p>最后更新：2026-10-08 (v0.2.0: 启用 ECS 静态部署 privacy.html 替代 GitHub Pages raw URL)</p>
+</footer>
+</body>
+</html>
